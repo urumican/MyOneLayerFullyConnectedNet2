@@ -1,1 +1,0 @@
-# MyOneLayerFullyConnectedNet2
