@@ -1,4 +1,4 @@
-# MyOneLayerFullyConnectedNet2
+# Homework Report
 
 1)	Write a function that evaluates the trained network (5 points), as well as computes all the subgradients of W_1W1 and W_2W2 using backpropagation (5 points).
 
