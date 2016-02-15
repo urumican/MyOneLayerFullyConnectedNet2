@@ -10,6 +10,7 @@
 #####################################################
 
 import numpy
+import pickle
 
 ### My Neural Network ###
 class MyOneLayerFullyConnectedNet:
@@ -76,7 +77,7 @@ class MyOneLayerFullyConnectedNet:
 		return (nabla_weights, nabla_biases)
 	## end ##
 
-	def mySDGwithMomentum(self, param, loss, lossPrime, miniBatchSize = 50, stepSize = 0.005, epoch = 50, gamma = 0.7):
+	def mySDGwithMomentum(self, param, loss, lossPrime, miniBatchSize = 100, stepSize = 0.005, gamma = 0.7):
 		# Get the size of the data.
 		dataSize = self.train_data.shape[0]
 	
@@ -86,8 +87,11 @@ class MyOneLayerFullyConnectedNet:
 		# setup momentum
 		momentumW = [numpy.zeros(w.shape) for w in self.weights]
 		momentumB = [numpy.zeros(b.shape) for b in self.biases]
+
+		testAcc = 0
+		trainAcc = 0
 					
-		for itr in range(epoch): 
+		for itr in range(100): 
 			print 'Epoch:', itr
 			randSerie = numpy.random.randint(dataSize, size = dataSize)
 			numOfBatch = dataSize / miniBatchSize
@@ -103,26 +107,33 @@ class MyOneLayerFullyConnectedNet:
 
 				# Update weights
 				for layer in range(self.numOfLayers - 1):
-					momentumW[layer] = gamma * momentumW[layer] -stepSize * nabla_weights[layer] / miniBatchSize
+					momentumW[layer] = gamma * momentumW[layer] - stepSize * nabla_weights[layer] / miniBatchSize
 					self.weights[layer] = self.weights[layer] + momentumW[layer]
-					momentumB[layer] = gamma * momentumB[layer] -stepSize * nabla_biases[layer] / miniBatchSize
+					momentumB[layer] = gamma * momentumB[layer] - stepSize * nabla_biases[layer] / miniBatchSize
 					self.biases[layer] = self.biases[layer] + momentumB[layer]
 				# end #
 			# end #
+	
+			randSerie2 = numpy.random.randint(dataSize, size = dataSize)
+			dataForTrainingAcc = self.train_data[randSerie[0:2000]]
+			labelForTrainingAcc = self.train_label[randSerie[0:2000]]
 				
 			# Training Acc and Error Calculation
-			acc = self.prediction(self.train_data, self.train_label)
-			loss = self.evaluation(self.train_data, self.train_label)
+			acc = self.prediction(dataForTrainingAcc, labelForTrainingAcc)
+			loss = self.evaluation(dataForTrainingAcc, labelForTrainingAcc)
 			print "Training Acc: ", acc
-			print "Training Loss: ", loss, "\n"
+			print "Training Loss: ", loss
 		
 			# Testing Acc and Error
 			testAcc= self.prediction(self.test_data, self.test_label)
 			testLoss = self.evaluation(self.test_data, self.test_label)
 			print "test testAcc: ", testAcc
 			print "test testLoss: ", testLoss, "\n"
-
 		# end #
+
+		return testAcc
+		
+	
 	## end ##
 
 	## Heler method for initiate
@@ -163,7 +174,7 @@ class MyOneLayerFullyConnectedNet:
 	def prediction(self, data, label):
 		self.feedForward(data)
 		predict = numpy.zeros((data.shape[0], 1))
-		predict[self.outputs[-1] > (numpy.ones((data.shape[0], 1)) - self.outputs[-1])] = 1
+		predict[numpy.where(self.outputs[-1] > (numpy.ones((data.shape[0], 1)) - self.outputs[-1]))] = 1
 		markCorrectAsOne = numpy.zeros((data.shape[0], 1))
 		markCorrectAsOne[numpy.where(predict == label)] = 1
 		acc = numpy.sum(markCorrectAsOne) / data.shape[0]
@@ -174,7 +185,7 @@ class MyOneLayerFullyConnectedNet:
 	## evaluate objective
 	def evaluation(self, data, label):
 		self.feedForward(data)
-		print "output: ", self.outputs[-1]
+		#print "output: ", self.outputs[-1]
 		loss = self.lossFunction(self.outputs[-1], label)
 		return loss.mean(0)
 	## end ##
